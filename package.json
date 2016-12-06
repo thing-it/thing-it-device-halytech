@@ -1,0 +1,27 @@
+{
+  "name": "thing-it-device-halytech",
+  "version": "0.0.1",
+  "description": "[thing-it-node] device plugin for halytech smart monitoring systems.",
+  "authors": "Klaus Berberich",
+  "license": "MIT",
+  "keywords": [
+    "IoT",
+    "IIoT",
+    "Smart City",
+    "Smart Metering",
+    "Water Metering",
+    "Leak Detection",
+    "Utilities",
+    "Smart Maintenance",
+    "thing-it"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/klausberberich/thing-it-device-halytech"
+  },
+  "dependencies": {
+    "csv": "^1.1.0",
+    "q": "^1.4.1",
+    "request": "^2.78.0"
+  }
+}

@@ -3,15 +3,20 @@
 [![NPM](https://nodei.co/npm/thing-it-device-halytech.png)](https://nodei.co/npm/thing-it-device-halytech/)
 [![NPM](https://nodei.co/npm-dl/thing-it-device-halytech.png)](https://nodei.co/npm/thing-it-device-halytech/)
 
-Halytech device Plugins for [[thing-it-node]](https://github.com/marcgille/thing-it-node) and [thing-it.com](wwww.thing-it.com).
+Device Plugins for halytech smart monitoring system for [[thing-it-node]](https://github.com/marcgille/thing-it-node) and [thing-it.com](wwww.thing-it.com).
 
 ## Configuration
 
 Simply configure the following parameters via [thing-it] Mobile or [thing-it.com](wwww.thing-it.com).
+* Name: Name for this halytech device.
+* Type: The type of this halytech device.
+* Server: Email server to pull emails from.
+* User: User name on that email server.
+* Password: Password on that email server.
 * Subject: The subject of the email sent by halytech, the default is "Automatic Report".
 * Location ID: The part of the filename that describes the location. The full file name is LOCATION_DATE with date in yyyymmdd format.
 * Time Zone: The time zone for the timestamps in the provided file.
-* Units: Either metric or imperial
+* Interval: Email pulling time in minutes.
 
 ## User Interface
 
