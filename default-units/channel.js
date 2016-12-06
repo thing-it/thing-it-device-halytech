@@ -44,8 +44,6 @@ var q = require('q');
  *
  */
 function Channel() {
-
-
     /**
      *
      */
