@@ -64,8 +64,9 @@ function Channel() {
             this.state.cumulatedReading = 235;
 
             this.simulationIntervals.push(setInterval(function () {
-                this.state.reading = Math.round(Math.random() * 2, 3);
+                this.state.reading = Number((Math.random() * 1.5).toFixed(3));
                 this.state.cumulatedReading += this.state.reading;
+                this.state.cumulatedReading = Number(this.state.cumulatedReading.toFixed(3));
 
                 this.logDebug("Simulated new reading: " + this.state.reading);
 

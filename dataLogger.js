@@ -120,6 +120,26 @@ function DataLogger() {
         this.state = {};
 
         if (this.isSimulated()) {
+            var simulatedHistoricStateChanges = [];
+
+            this.simulationIntervals.push(setInterval(function () {
+                simulatedHistoricStateChanges.push(
+                    {
+                        timestamp: new Date(),
+                        state: {
+                            externalPowerVoltage: 0,
+                            batteryOneVoltage: Number((Math.random() * 10).toFixed(3)),
+                            batteryTwoVoltage: Number((Math.random() * 10).toFixed(3)),
+                            temperature: Number((Math.random() * (20 - 30) + 30).toFixed(1))
+                        }
+                    }
+                )
+            }.bind(this), 10000));
+
+            this.simulationIntervals.push(setInterval(function () {
+                this.publishStateChangeHistory(simulatedHistoricStateChanges);
+            }.bind(this), 24000));
+
             promise = q();
         } else {
             promise = this.pollData();
