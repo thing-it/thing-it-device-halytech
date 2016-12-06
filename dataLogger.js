@@ -146,37 +146,153 @@ function DataLogger() {
                 .done(function (data) {
                     var actors = {};
                     var line;
+                    var ownStateChanges = [];
+                    var lastOwnStateChange = null;
+                    var currentTimestamp;
+                    var currentReading;
 
                     for (var n in this.actors) {
                         actors[this.actors[n].configuration.channel] = this.actors[n];
-                    };
+                    }
 
                     for (var n in data) {
                         line = data[n];
+                        currentTimestamp = new Date(line[1]);
+                        currentReading = parseFloat(line[2]);
 
                         try {
                             switch (line[0]) {
                                 case "External Power Vol_reading":
-                                    this.state.externalPowerVoltage = line[2];
-                                    this.state.timestamp = line[1];
+                                    if (!lastOwnStateChange){
+                                        lastOwnStateChange = {
+                                            timestamp: currentTimestamp,
+                                            state: {
+                                                externalPowerVoltage: 0,
+                                                batteryOneVoltage: 0,
+                                                batteryTwoVoltage: 0,
+                                                temperature: 0
+                                            }
+                                        };
+                                    }
+
+                                    if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
+                                        lastOwnStateChange.state.externalPowerVoltage = currentReading;
+                                    } else {
+                                        ownStateChanges.push(lastOwnStateChange);
+
+                                        lastOwnStateChange = {
+                                            timestamp: currentTimestamp,
+                                            state: {
+                                                externalPowerVoltage: currentReading,
+                                                batteryOneVoltage: 0,
+                                                batteryTwoVoltage: 0,
+                                                temperature: 0
+                                            }
+                                        };
+                                    }
                                     break;
+
                                 case "Battery 1 Voltage_reading":
-                                    this.state.batteryOneVoltage = line[2];
-                                    this.state.timestamp = line[1];
+                                    if (!lastOwnStateChange){
+                                        lastOwnStateChange = {
+                                            timestamp: currentTimestamp,
+                                            state: {
+                                                externalPowerVoltage: 0,
+                                                batteryOneVoltage: 0,
+                                                batteryTwoVoltage: 0,
+                                                temperature: 0
+                                            }
+                                        };
+                                    }
+
+                                    if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
+                                        lastOwnStateChange.state.batteryOneVoltage = currentReading;
+                                    } else {
+                                        if (lastOwnStateChange) {
+                                            ownStateChanges.push(lastOwnStateChange);
+                                        }
+
+                                        lastOwnStateChange = {
+                                            timestamp: currentTimestamp,
+                                            state: {
+                                                externalPowerVoltage: 0,
+                                                batteryOneVoltage: currentReading,
+                                                batteryTwoVoltage: 0,
+                                                temperature: 0
+                                            }
+                                        };
+                                    }
                                     break;
+
                                 case "Battery 2 Voltage_reading":
-                                    this.state.batteryTwoVoltage = line[2];
-                                    this.state.timestamp = line[1];
+                                    if (!lastOwnStateChange){
+                                        lastOwnStateChange = {
+                                            timestamp: currentTimestamp,
+                                            state: {
+                                                externalPowerVoltage: 0,
+                                                batteryOneVoltage: 0,
+                                                batteryTwoVoltage: 0,
+                                                temperature: 0
+                                            }
+                                        };
+                                    }
+
+                                    if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
+                                        lastOwnStateChange.state.batteryTwoVoltage = currentReading;
+                                    } else {
+                                        if (lastOwnStateChange) {
+                                            ownStateChanges.push(lastOwnStateChange);
+                                        }
+
+                                        lastOwnStateChange = {
+                                            timestamp: currentTimestamp,
+                                            state: {
+                                                externalPowerVoltage: 0,
+                                                batteryOneVoltage: 0,
+                                                batteryTwoVoltage: currentReading,
+                                                temperature: 0
+                                            }
+                                        };
+                                    }
                                     break;
+
                                 case "System Temp_reading":
-                                    this.state.temperature = line[2];
-                                    this.state.timestamp = line[1];
+                                    if (!lastOwnStateChange){
+                                        lastOwnStateChange = {
+                                            timestamp: currentTimestamp,
+                                            state: {
+                                                externalPowerVoltage: 0,
+                                                batteryOneVoltage: 0,
+                                                batteryTwoVoltage: 0,
+                                                temperature: 0
+                                            }
+                                        };
+                                    }
+
+                                    if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
+                                        lastOwnStateChange.state.temperature = currentReading;
+                                    } else {
+                                        if (lastOwnStateChange) {
+                                            ownStateChanges.push(lastOwnStateChange);
+                                        }
+
+                                        lastOwnStateChange = {
+                                            timestamp: currentTimestamp,
+                                            state: {
+                                                externalPowerVoltage: 0,
+                                                batteryOneVoltage: 0,
+                                                batteryTwoVoltage: 0,
+                                                temperature: currentReading
+                                            }
+                                        };
+                                    }
                                     break;
+
                                 default:
                                     var readingPos = line[0].indexOf("_reading");
-                                    var cumulatedReading = (readingPos > -1);
+                                    var cummulatedReading = (readingPos > -1);
 
-                                    if (cumulatedReading) {
+                                    if (cummulatedReading) {
                                         channelId = line[0].substr(0, readingPos);
                                     } else {
                                         channelId = line[0];
@@ -185,17 +301,17 @@ function DataLogger() {
                                     var actor = actors[channelId];
 
                                     if (actor) {
-                                        if (cumulatedReading){
+                                        if (cummulatedReading) {
                                             actor.addCumulatedReading({
                                                 id: channelId,
-                                                timestamp: new Date(line[1]),
-                                                cumulatedReading: parseFloat(line[2])
+                                                timestamp: currentTimestamp,
+                                                cumulatedReading: currentReading
                                             });
                                         } else {
                                             actor.addReading({
                                                 id: channelId,
-                                                timestamp: new Date(line[1]),
-                                                reading: parseFloat(line[2])
+                                                timestamp: currentTimestamp,
+                                                reading: currentReading
                                             });
                                         }
                                     } else {
@@ -204,19 +320,23 @@ function DataLogger() {
 
                                     break;
                             }
-//                            this.updateSensors(unitState);
                         } catch (e) {
                             this.logError("Error reading csv data.", e);
                         }
                     }
 
-                    for (var property in actors) {
-                        if (actors.hasOwnProperty(property)) {
-                            actors[property].publishReadings();
-                        }
+                    for (var n in this.actors) {
+                        this.actors[n].publishReadings();
+                    };
+
+
+                    if (lastOwnStateChange){
+                        ownStateChanges.push(lastOwnStateChange);
+                        this.state = lastOwnStateChange;
                     }
 
-                    this.logDebug(this.state);
+                    this.publishStateChangeHistory(ownStateChanges);
+                    this.publishStateChange();
                     return q();
                 }.bind(this));
         } catch (e) {
@@ -286,26 +406,6 @@ function DataLogger() {
         return deferred.promise;
     };
 
-
-    /**
-     *
-     * @param unitState
-     */
-    DataLogger.prototype.updateSensors = function (unitState) {
-        try {
-            var currentPort;
-
-            for (var n in this.actors) {
-                currentPort = unitState.ports[this.actors[n].configuration.portNumber];
-
-                if (currentPort) {
-                    this.actors[n].updateReading(currentPort);
-                }
-            }
-        } catch (e) {
-            this.logError("Error reading temperature.", e);
-        }
-    }
 
     /**
      *

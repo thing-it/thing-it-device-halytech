@@ -7,12 +7,12 @@ module.exports = {
         deviceTypes: ["halytech/dataLogger"],
         services: [],
         state: [{
-            id: "consumption", label: "Consumption",
+            id: "reading", label: "Reading",
             type: {
                 id: "decimal"
             }
         }, {
-            id: "cumulatedConsumption", label: "Cumulated Consumption",
+            id: "cumulatedReading", label: "Cumulated Reading",
             type: {
                 id: "decimal"
             }
@@ -39,8 +39,6 @@ module.exports = {
 };
 
 var q = require('q');
-var readings;
-var cumulatedReadings;
 
 /**
  *
@@ -55,23 +53,22 @@ function Channel() {
         this.started = true;
         this.intervals = [];
         this.simulationIntervals = [];
-        readings = [];
-        cumulatedReadings = [];
+        this.stateChanges = [];
 
         this.state = {
             temperature: 0,
         };
 
         if (this.isSimulated()) {
-            this.state.consumption = 0;
-            this.state.cumulatedConsumption = 235;
+            this.state.reading = 0;
+            this.state.cumulatedReading = 235;
 
             this.simulationIntervals.push(setInterval(function () {
-                this.state.consumption = Math.round(Math.random() * 2, 3);
-                this.state.cumulatedConsumption += this.state.consumption;
+                this.state.reading = Math.round(Math.random() * 2, 3);
+                this.state.cumulatedReading += this.state.reading;
                 this.publishStateChange();
-                this.logDebug("Simulated new reading: " + this.state.currentReading
-                    + "(" + this.state.cumulatedConsumption + ")");
+                this.logDebug("Simulated new reading: " + this.state.reading
+                    + "(" + this.state.cumulatedReading + ")");
             }.bind(this), 10000));
         }
 
@@ -114,34 +111,41 @@ function Channel() {
      */
     Channel.prototype.setState = function (state) {
         this.state = state;
-        this.publishStateChange();
     };
 
     /**
      *
      */
     Channel.prototype.addReading = function (reading) {
-        readings.push(reading);
+        this.stateChanges.push({
+            timestamp: reading.timestamp,
+            state: {
+                reading: reading.reading
+            }
+        });
     };
 
     /**
      *
      */
     Channel.prototype.addCumulatedReading = function (cumulatedReading) {
-        cumulatedReadings.push(cumulatedReading);
+        this.stateChanges.push({
+            timestamp: cumulatedReading.timestamp,
+            state: {
+                cumulatedReading: cumulatedReading.reading
+            }
+        });
     };
 
     /**
      *
      */
     Channel.prototype.publishReadings = function () {
-        this.logInfo("Publishing readings for channel" + this.configuration.name + " of device "
+        var promise;
+        this.logInfo("Publishing stateChanges for channel" + this.configuration.name + " of device "
             + this.device.configuration.name + ".");
-        this.logDebug("Readings");
-        this.logDebug(readings);
-        this.logDebug("Cumulated Readings");
-        this.logDebug(cumulatedReadings);
-        readings = [];
-        cumulatedReadings = [];
+        promise = this.publishStateChangeHistory(this.stateChanges);
+        this.stateChanges = [];
+        return promise;
     };
 };
