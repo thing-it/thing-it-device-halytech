@@ -138,69 +138,94 @@ function DataLogger() {
 
 
     DataLogger.prototype.pollData = function () {
-        var promise = this.pollEmail(this.configuration.name)
-            .then(function (csvData) {
-                return this.readCSVData(csvData);
-            }.bind(this))
-            .done(function (data) {
-                for (var n in data) {
-                    try {
-                        this.readLine(data[n]);
-//                            this.updateSensors(unitState);
-                    } catch (e) {
-                        this.logError("Error reading csv data.", e, unitState);
-                    }
-                }
+        try {
+            var promise = this.pollEmail(this.configuration.name)
+                .then(function (csvData) {
+                    return this.readCSVData(csvData);
+                }.bind(this))
+                .done(function (data) {
+                    var actors = {};
+                    var line;
 
-                this.logDebug(this.state);
-                return q();
-            }.bind(this));
+                    for (var n in this.actors) {
+                        actors[this.actors[n].configuration.channel] = this.actors[n];
+                    };
+
+                    for (var n in data) {
+                        line = data[n];
+
+                        try {
+                            switch (line[0]) {
+                                case "External Power Vol_reading":
+                                    this.state.externalPowerVoltage = line[2];
+                                    this.state.timestamp = line[1];
+                                    break;
+                                case "Battery 1 Voltage_reading":
+                                    this.state.batteryOneVoltage = line[2];
+                                    this.state.timestamp = line[1];
+                                    break;
+                                case "Battery 2 Voltage_reading":
+                                    this.state.batteryTwoVoltage = line[2];
+                                    this.state.timestamp = line[1];
+                                    break;
+                                case "System Temp_reading":
+                                    this.state.temperature = line[2];
+                                    this.state.timestamp = line[1];
+                                    break;
+                                default:
+                                    var readingPos = line[0].indexOf("_reading");
+                                    var cumulatedReading = (readingPos > -1);
+
+                                    if (cumulatedReading) {
+                                        channelId = line[0].substr(0, readingPos);
+                                    } else {
+                                        channelId = line[0];
+                                    }
+
+                                    var actor = actors[channelId];
+
+                                    if (actor) {
+                                        if (cumulatedReading){
+                                            actor.addCumulatedReading({
+                                                id: channelId,
+                                                timestamp: new Date(line[1]),
+                                                cumulatedReading: parseFloat(line[2])
+                                            });
+                                        } else {
+                                            actor.addReading({
+                                                id: channelId,
+                                                timestamp: new Date(line[1]),
+                                                reading: parseFloat(line[2])
+                                            });
+                                        }
+                                    } else {
+                                        this.logError("Channel " + channelId + " not configured, ignoring data.");
+                                    }
+
+                                    break;
+                            }
+//                            this.updateSensors(unitState);
+                        } catch (e) {
+                            this.logError("Error reading csv data.", e);
+                        }
+                    }
+
+                    for (var property in actors) {
+                        if (actors.hasOwnProperty(property)) {
+                            actors[property].publishReadings();
+                        }
+                    }
+
+                    this.logDebug(this.state);
+                    return q();
+                }.bind(this));
+        } catch (e) {
+            this.logError(e);
+            promise = q();
+        }
 
         return promise;
     };
-
-    DataLogger.prototype.readLine = function (line) {
-        var deferred = q.defer();
-        var sensorId;
-
-        switch (line[0]) {
-            case "External Power Vol_reading":
-                this.state.externalPowerVoltage = line[2];
-                this.state.timestamp = line[1];
-                break;
-            case "Battery 1 Voltage_reading":
-                this.state.batteryOneVoltage = line[2];
-                this.state.timestamp = line[1];
-                break;
-            case "Battery 2 Voltage_reading":
-                this.state.batteryTwoVoltage = line[2];
-                this.state.timestamp = line[1];
-                break;
-            case "System Temp_reading":
-                this.state.temperature = line[2];
-                this.state.timestamp = line[1];
-                break;
-            default:
-                var readingPos = line[0].indexOf("_reading");
-
-                if (readingPos > -1) {
-                    sensorId = line[0].substr(0, readingPos);
-                    this.logDebug("Reading daily value from " + sensorId + ": " + line[2]);
-                    this.logDebug("Time:", new Date(line[1]).toISOString());
-                } else {
-                    sensorId = line[0];
-
-                    this.logDebug("Reading value from " + sensorId + " for time " + line[1]
-                        + " : " + line[2]);
-                    this.logDebug("Time:", new Date(line[1]).toISOString());
-                }
-                break;
-        }
-
-        deferred.resolve();
-        return deferred.promise;
-    };
-
 
     /**
      *
