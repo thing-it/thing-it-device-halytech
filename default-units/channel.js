@@ -66,10 +66,32 @@ function Channel() {
             this.simulationIntervals.push(setInterval(function () {
                 this.state.reading = Math.round(Math.random() * 2, 3);
                 this.state.cumulatedReading += this.state.reading;
-                this.publishStateChange();
-                this.logDebug("Simulated new reading: " + this.state.reading
-                    + "(" + this.state.cumulatedReading + ")");
-            }.bind(this), 10000));
+
+                this.logDebug("Simulated new reading: " + this.state.reading);
+
+                this.stateChanges.push({
+                    timestamp: new Date(),
+                    state: {
+                        reading: this.state.reading
+                    }
+                });
+            }.bind(this), 1000));
+
+            this.simulationIntervals.push(setInterval(function () {
+                this.logDebug("Simulated new cumulated reading: " + this.state.cumulatedReading);
+
+                this.stateChanges.push({
+                    timestamp: new Date(),
+                    state: {
+                        cumulatedReading: this.state.cumulatedReading
+                    }
+                });
+            }.bind(this), 4000));
+
+
+            this.simulationIntervals.push(setInterval(function () {
+                this.publishReadings();
+            }.bind(this), 9000));
         }
 
         return q();

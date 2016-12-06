@@ -122,16 +122,8 @@ function DataLogger() {
         if (this.isSimulated()) {
             promise = q();
         } else {
-            this.pollData();
+            promise = this.pollData();
         }
-
-        /*      TODO update sensors
-         this.intervals.push(setInterval(function () {
-         pollEmail.call(this, this.configuration.host, this.configuration.mac, function (error, unitState) {
-         this.updateSensors(unitState);
-         }.bind(this))
-         }.bind(this), this.configuration.interval));
-         */
 
         return promise;
     };
@@ -231,9 +223,9 @@ function DataLogger() {
 
                                 default:
                                     var readingPos = line[0].indexOf("_reading");
-                                    var cummulatedReading = (readingPos > -1);
+                                    var cumulatedReading = (readingPos > -1);
 
-                                    if (cummulatedReading) {
+                                    if (cumulatedReading) {
                                         channelId = line[0].substr(0, readingPos);
                                     } else {
                                         channelId = line[0];
@@ -242,7 +234,7 @@ function DataLogger() {
                                     var actor = actors[channelId];
 
                                     if (actor) {
-                                        if (cummulatedReading) {
+                                        if (cumulatedReading) {
                                             actor.addCumulatedReading({
                                                 id: channelId,
                                                 timestamp: currentTimestamp,
