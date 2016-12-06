@@ -161,48 +161,26 @@ function DataLogger() {
                         currentReading = parseFloat(line[2]);
 
                         try {
+                            //TODO create one generic method that updates lastOwnStateChange instead of the spaghetti below
                             switch (line[0]) {
                                 case "External Power Vol_reading":
-                                    if (!lastOwnStateChange){
-                                        lastOwnStateChange = {
-                                            timestamp: currentTimestamp,
-                                            state: {
-                                                externalPowerVoltage: 0,
-                                                batteryOneVoltage: 0,
-                                                batteryTwoVoltage: 0,
-                                                temperature: 0
-                                            }
-                                        };
+                                    if (!lastOwnStateChange) {
+                                        lastOwnStateChange = this.initHistoricState(currentTimestamp);
                                     }
 
                                     if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
                                         lastOwnStateChange.state.externalPowerVoltage = currentReading;
                                     } else {
                                         ownStateChanges.push(lastOwnStateChange);
-
-                                        lastOwnStateChange = {
-                                            timestamp: currentTimestamp,
-                                            state: {
-                                                externalPowerVoltage: currentReading,
-                                                batteryOneVoltage: 0,
-                                                batteryTwoVoltage: 0,
-                                                temperature: 0
-                                            }
-                                        };
+                                        lastOwnStateChange = this.initHistoricState(currentTimestamp);
+                                        lastOwnStateChange.externalPowerVoltage = currentReading;
                                     }
+
                                     break;
 
                                 case "Battery 1 Voltage_reading":
-                                    if (!lastOwnStateChange){
-                                        lastOwnStateChange = {
-                                            timestamp: currentTimestamp,
-                                            state: {
-                                                externalPowerVoltage: 0,
-                                                batteryOneVoltage: 0,
-                                                batteryTwoVoltage: 0,
-                                                temperature: 0
-                                            }
-                                        };
+                                    if (!lastOwnStateChange) {
+                                        lastOwnStateChange = this.initHistoricState(currentTimestamp);
                                     }
 
                                     if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
@@ -212,29 +190,14 @@ function DataLogger() {
                                             ownStateChanges.push(lastOwnStateChange);
                                         }
 
-                                        lastOwnStateChange = {
-                                            timestamp: currentTimestamp,
-                                            state: {
-                                                externalPowerVoltage: 0,
-                                                batteryOneVoltage: currentReading,
-                                                batteryTwoVoltage: 0,
-                                                temperature: 0
-                                            }
-                                        };
+                                        lastOwnStateChange = this.initHistoricState(currentTimestamp);
+                                        lastOwnStateChange.batteryOneVoltage = currentReading;
                                     }
                                     break;
 
                                 case "Battery 2 Voltage_reading":
-                                    if (!lastOwnStateChange){
-                                        lastOwnStateChange = {
-                                            timestamp: currentTimestamp,
-                                            state: {
-                                                externalPowerVoltage: 0,
-                                                batteryOneVoltage: 0,
-                                                batteryTwoVoltage: 0,
-                                                temperature: 0
-                                            }
-                                        };
+                                    if (!lastOwnStateChange) {
+                                        lastOwnStateChange = this.initHistoricState(currentTimestamp);
                                     }
 
                                     if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
@@ -244,29 +207,14 @@ function DataLogger() {
                                             ownStateChanges.push(lastOwnStateChange);
                                         }
 
-                                        lastOwnStateChange = {
-                                            timestamp: currentTimestamp,
-                                            state: {
-                                                externalPowerVoltage: 0,
-                                                batteryOneVoltage: 0,
-                                                batteryTwoVoltage: currentReading,
-                                                temperature: 0
-                                            }
-                                        };
+                                        lastOwnStateChange = this.initHistoricState(currentTimestamp);
+                                        lastOwnStateChange.batteryTwoVoltage = currentReading;
                                     }
                                     break;
 
                                 case "System Temp_reading":
-                                    if (!lastOwnStateChange){
-                                        lastOwnStateChange = {
-                                            timestamp: currentTimestamp,
-                                            state: {
-                                                externalPowerVoltage: 0,
-                                                batteryOneVoltage: 0,
-                                                batteryTwoVoltage: 0,
-                                                temperature: 0
-                                            }
-                                        };
+                                    if (!lastOwnStateChange) {
+                                        lastOwnStateChange = this.initHistoricState(currentTimestamp);
                                     }
 
                                     if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
@@ -276,15 +224,8 @@ function DataLogger() {
                                             ownStateChanges.push(lastOwnStateChange);
                                         }
 
-                                        lastOwnStateChange = {
-                                            timestamp: currentTimestamp,
-                                            state: {
-                                                externalPowerVoltage: 0,
-                                                batteryOneVoltage: 0,
-                                                batteryTwoVoltage: 0,
-                                                temperature: currentReading
-                                            }
-                                        };
+                                        lastOwnStateChange = this.initHistoricState(currentTimestamp);
+                                        lastOwnStateChange.temperature = currentReading;
                                     }
                                     break;
 
@@ -327,10 +268,10 @@ function DataLogger() {
 
                     for (var n in this.actors) {
                         this.actors[n].publishReadings();
-                    };
+                    }
 
 
-                    if (lastOwnStateChange){
+                    if (lastOwnStateChange) {
                         ownStateChanges.push(lastOwnStateChange);
                         this.state = lastOwnStateChange;
                     }
@@ -345,6 +286,18 @@ function DataLogger() {
         }
 
         return promise;
+    };
+
+    DataLogger.prototype.initHistoricState = function (timestamp) {
+        return {
+            timestamp: timestamp,
+            state: {
+                externalPowerVoltage: 0,
+                batteryOneVoltage: 0,
+                batteryTwoVoltage: 0,
+                temperature: 0
+            }
+        };
     };
 
     /**
