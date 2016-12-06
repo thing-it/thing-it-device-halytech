@@ -81,11 +81,8 @@ module.exports = {
 };
 
 var q = require('q');
+var MailParser;
 var csv;
-var xml2js;
-var request;
-var https;
-var sensorLibrary;
 
 function DataLoggerDiscovery() {
 
@@ -103,7 +100,6 @@ function DataLogger() {
      *
      */
     DataLogger.prototype.start = function () {
-        var promise;
 
         this.logDebug("Starting halytech data logger.");
 
@@ -140,12 +136,14 @@ function DataLogger() {
                 this.publishStateChangeHistory(simulatedHistoricStateChanges);
             }.bind(this), 24000));
 
-            promise = q();
         } else {
-            promise = this.pollData();
+            this.pollData();
+            this.intervals.push(setInterval(function () {
+                this.pollData();
+            }.bind(this), this.configuration.interval * 60000))
         }
 
-        return promise;
+        return q();
     };
 
 
@@ -155,7 +153,7 @@ function DataLogger() {
                 .then(function (csvData) {
                     return this.readCSVData(csvData);
                 }.bind(this))
-                .done(function (data) {
+                .then(function (data) {
                     var actors = {};
                     var line;
                     var ownStateChanges = [];
@@ -291,6 +289,9 @@ function DataLogger() {
                     this.publishStateChangeHistory(ownStateChanges);
                     this.publishStateChange();
                     return q();
+                }.bind(this))
+                .catch(function (err) {
+                    this.logError(err);
                 }.bind(this));
         } catch (e) {
             this.logError(e);
@@ -325,48 +326,24 @@ function DataLogger() {
         }
     };
 
-    DataLogger.prototype.pollEmail = function (name) {
-        this.logDebug("Polling email for unit  " + name);
-
-        //TODO implement and make sure multiple emails would get picked up.
-        return q('ETGD0018,5-Dec-16 23:30:00,0.000\n' +
-            'ETGD0018,5-Dec-16 23:35:00,0.000\n' +
-            'ETGD0018,5-Dec-16 23:40:00,1.000\n' +
-            'ETGD0018,5-Dec-16 23:45:00,0.000\n' +
-            'ETGD0018,5-Dec-16 23:50:00,0.045\n' +
-            'ETGD0018,5-Dec-16 23:55:00,2.100\n' +
-            'ETGD0018,6-Dec-16 0:00:00,3.002\n' +
-            'ETGD0018_reading,6-Dec-16 0:00:00,2825.000\n' +
-            'External Power Vol_reading,6-Dec-16 0:00:00,0.019\n' +
-            'Battery 1 Voltage_reading,6-Dec-16 0:00:00,7.324\n' +
-            'Battery 2 Voltage_reading,6-Dec-16 0:00:00,6.640\n' +
-            'System Temp_reading,6-Dec-16 0:00:00,23.000\n' +
-            'ETGD0018,6-Dec-16 0:05:00,0.400\n' +
-            'ETGD0018,6-Dec-16 0:10:00,1.123\n' +
-            'ETGD0018,6-Dec-16 0:15:00,0.980\n' +
-            'ETGD0018,6-Dec-16 0:20:00,0.021\n' +
-            'ETGD0018,6-Dec-16 0:25:00,0.000\n' +
-            'ETGD0018,6-Dec-16 0:30:00,0.000\n' +
-            'ETGD0018,6-Dec-16 0:35:00,2.500\n' +
-            'ETGD0018,6-Dec-16 0:40:00,0.000\n' +
-            'ETGD0018,6-Dec-16 0:45:00,0.000\n' +
-            'ETGD0018,6-Dec-16 0:50:00,0.000');
-    };
-
     DataLogger.prototype.readCSVData = function (csvData) {
         var deferred = q.defer();
 
-        if (!csv) {
-            csv = require('csv');
-        }
-
-        csv.parse(csvData, function (err, data) {
-            if (err) {
-                deferred.reject(err);
-            } else {
-                deferred.resolve(data);
+        if (csvData) {
+            if (!csv) {
+                csv = require('csv');
             }
-        }.bind(this));
+
+            csv.parse(csvData, function (err, data) {
+                if (err) {
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve(data);
+                }
+            }.bind(this));
+        } else {
+            deferred.reject("No data received.");
+        }
 
         return deferred.promise;
     };
@@ -385,4 +362,121 @@ function DataLogger() {
     DataLogger.prototype.getState = function () {
         return this.state;
     };
+
+    DataLogger.prototype.pollEmail = function (name) {
+        var deferred = q.defer();
+
+        var Imap = require('imap'),
+            inspect = require('util').inspect;
+
+        var imap = new Imap({
+            user: this.configuration.username,
+            password: this.configuration.password,
+            host: this.configuration.server,
+            port: 993,
+            tls: true,
+            markRead: true,
+            markSeen: true
+        });
+
+        imap.once('ready', function () {
+            imap.openBox('INBOX', false, function (err, box) {
+
+                if (err) deferred.reject(e);
+
+                imap.search(['UNSEEN', ['HEADER', 'SUBJECT', this.configuration.subject]], function (err, results) {
+
+                    if ((results) && (results.length) && (results.length > 0)) {
+                        this.logInfo('Found ' + results.length + ' new email matching subject "' + this.configuration.subject
+                            + '" found for user "' + this.configuration.username + '" on server "'
+                            + this.configuration.server + '".');
+
+
+                        var f = imap.fetch(results, {
+                            bodies: '',
+                            struct: true
+                        });
+
+                        f.on('message', function (msg, seqno) {
+                            if (!MailParser) {
+                                MailParser = require("mailparser").MailParser;
+                            }
+
+                            var mailparser = new MailParser();
+
+                            mailparser.on("headers", function (headers) {
+//                                console.log(headers.received);
+                            }.bind(this));
+
+                            mailparser.on("end", function (mail) {
+                                if (mail.attachments) {
+                                    this.logInfo('Analyzing message with subject "' + mail.subject
+                                        + '" and ' + mail.attachments.length + ' attachments.');
+                                    var attachment;
+
+                                    for (var n in mail.attachments) {
+                                        attachment = mail.attachments[n];
+
+                                        if (attachment.generatedFileName.indexOf(this.configuration.locationID) > -1) {
+                                            this.logDebug('Found matching attachment ' + attachment.generatedFileName);
+                                            var dataLoggerInfo = attachment.content.toString('UTF8').trim().replace(/\r\n/g, "\n");
+
+                                            deferred.resolve(dataLoggerInfo);
+                                            break;
+                                        } else {
+                                            this.logDebug('Ignored attachment ' + attachment.generatedFileName);
+                                        }
+                                    }
+
+                                } else {
+                                    this.logInfo('Parsed and ignored message with subject "' + mail.subject
+                                        + '" and no attachments.');
+                                    deferred.resolve();
+                                }
+                            }.bind(this));
+
+                            msg.on('body', function (stream, info) {
+                                stream.pipe(mailparser);
+                            }.bind(this));
+
+                            msg.on("end", function () {
+                                /*
+                                 console.log("End");
+                                 mailparser.end();
+                                 */
+                            }.bind(this));
+                        }.bind(this));
+
+                        f.once('error', function (err) {
+                            this.logDebug('Fetch error: ' + err);
+                            deferred.reject(err);
+                        }.bind(this));
+
+                        f.once('end', function () {
+                            this.logDebug('Done fetching all messages!');
+                            imap.end();
+                        }.bind(this));
+                    } else {
+                        deferred.reject('No new email matching subject "' + this.configuration.subject
+                            + '" found for user "' + this.configuration.username + '" on server "'
+                            + this.configuration.server + '".');
+                    }
+                }.bind(this));
+            }.bind(this));
+        }.bind(this));
+
+        imap.once('error', function (err) {
+            this.logError(err);
+            deferred.reject(err);
+        }.bind(this));
+
+        imap.once('end', function () {
+            this.logDebug('Connection ended');
+        }.bind(this));
+
+        imap.connect();
+
+        return deferred.promise;
+    }
+
 }

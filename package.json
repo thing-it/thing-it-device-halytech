@@ -1,6 +1,6 @@
 {
   "name": "thing-it-device-halytech",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "[thing-it-node] device plugin for halytech smart monitoring systems.",
   "authors": "Klaus Berberich",
   "license": "MIT",
@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "csv": "^1.1.0",
+    "imap": "^0.8.19",
+    "mailparser": "^0.6.1",
     "q": "^1.4.1",
     "request": "^2.78.0"
   }

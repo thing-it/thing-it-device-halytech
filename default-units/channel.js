@@ -156,7 +156,7 @@ function Channel() {
         this.stateChanges.push({
             timestamp: cumulatedReading.timestamp,
             state: {
-                cumulatedReading: cumulatedReading.reading
+                cumulatedReading: cumulatedReading.cumulatedReading
             }
         });
     };
