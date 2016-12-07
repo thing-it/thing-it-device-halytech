@@ -20,7 +20,7 @@ module.exports = {
             type: {id: "decimal"}
         }, {
             id: "temperature",
-            label: "Form",
+            label: "Temperature",
             type: {id: "decimal"}
         }, {
             id: "timestamp",
@@ -114,26 +114,31 @@ function DataLogger() {
         this.intervals = [];
         this.simulationIntervals = [];
         this.state = {};
+        this.stateChanges = [];
+        this.lastPublished = new Date();
 
         if (this.isSimulated()) {
-            var simulatedHistoricStateChanges = [];
-
             this.simulationIntervals.push(setInterval(function () {
-                simulatedHistoricStateChanges.push(
-                    {
-                        timestamp: new Date(),
-                        state: {
-                            externalPowerVoltage: 0,
-                            batteryOneVoltage: Number((Math.random() * 10).toFixed(3)),
-                            batteryTwoVoltage: Number((Math.random() * 10).toFixed(3)),
-                            temperature: Number((Math.random() * (20 - 30) + 30).toFixed(1))
-                        }
+                var simulatedState = {
+                    timestamp: new Date(),
+                    state: {
+                        externalPowerVoltage: 0,
+                        batteryOneVoltage: Number((Math.random() * 10).toFixed(3)),
+                        batteryTwoVoltage: Number((Math.random() * 10).toFixed(3)),
+                        temperature: Number((Math.random() * (20 - 30) + 30).toFixed(1))
                     }
-                )
+                };
+
+                this.stateChanges.push(simulatedState);
+                this.logDebug('Simulated device status change ('
+                    + simulatedState.state.externalPowerVoltage + ','
+                    + simulatedState.state.batteryOneVoltage + ','
+                    + simulatedState.state.batteryTwoVoltage + ','
+                    + simulatedState.state.temperature + ').');
             }.bind(this), 10000));
 
             this.simulationIntervals.push(setInterval(function () {
-                this.publishStateChangeHistory(simulatedHistoricStateChanges);
+                this.publishHistoricData();
             }.bind(this), 24000));
 
         } else {
@@ -156,7 +161,6 @@ function DataLogger() {
                 .then(function (data) {
                     var actors = {};
                     var line;
-                    var ownStateChanges = [];
                     var lastOwnStateChange = null;
                     var currentTimestamp;
                     var currentReading;
@@ -181,7 +185,7 @@ function DataLogger() {
                                     if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
                                         lastOwnStateChange.state.externalPowerVoltage = currentReading;
                                     } else {
-                                        ownStateChanges.push(lastOwnStateChange);
+                                        this.stateChanges.push(lastOwnStateChange);
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
                                         lastOwnStateChange.externalPowerVoltage = currentReading;
                                     }
@@ -197,7 +201,7 @@ function DataLogger() {
                                         lastOwnStateChange.state.batteryOneVoltage = currentReading;
                                     } else {
                                         if (lastOwnStateChange) {
-                                            ownStateChanges.push(lastOwnStateChange);
+                                            this.stateChanges.push(lastOwnStateChange);
                                         }
 
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
@@ -214,7 +218,7 @@ function DataLogger() {
                                         lastOwnStateChange.state.batteryTwoVoltage = currentReading;
                                     } else {
                                         if (lastOwnStateChange) {
-                                            ownStateChanges.push(lastOwnStateChange);
+                                            this.stateChanges.push(lastOwnStateChange);
                                         }
 
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
@@ -231,7 +235,7 @@ function DataLogger() {
                                         lastOwnStateChange.state.temperature = currentReading;
                                     } else {
                                         if (lastOwnStateChange) {
-                                            ownStateChanges.push(lastOwnStateChange);
+                                            this.stateChanges.push(lastOwnStateChange);
                                         }
 
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
@@ -277,17 +281,17 @@ function DataLogger() {
                     }
 
                     for (var n in this.actors) {
-                        this.actors[n].publishReadings();
+                        this.actors[n].publishHistoricData();
                     }
 
 
                     if (lastOwnStateChange) {
-                        ownStateChanges.push(lastOwnStateChange);
-                        this.state = lastOwnStateChange;
+                        this.stateChanges.push(lastOwnStateChange);
+                        this.publishHistoricData();
+                    } else {
+                        this.logDebug('No state changes on device.');
                     }
 
-                    this.publishStateChangeHistory(ownStateChanges);
-                    this.publishStateChange();
                     return q();
                 }.bind(this))
                 .catch(function (err) {
@@ -300,6 +304,37 @@ function DataLogger() {
         }
 
         return promise;
+    };
+
+    /**
+     *
+     */
+    DataLogger.prototype.publishHistoricData = function () {
+        var currentStateChange;
+        var comparisonTime = this.lastPublished;
+
+        this.logInfo("Publishing " + this.stateChanges.length + " device state changes.");
+        this.publishStateChangeHistory(this.stateChanges);
+
+        for (var n in this.stateChanges) {
+            currentStateChange = this.stateChanges[n];
+
+            if (currentStateChange.timestamp > comparisonTime) {
+                this.state = {
+                    externalPowerVoltage: currentStateChange.externalPowerVoltage,
+                    batteryOneVoltage: currentStateChange.batteryOneVoltage,
+                    batteryTwoVoltage: currentStateChange.batteryTwoVoltage,
+                    temperature: currentStateChange.temperature
+                };
+
+                this.lastPublished = currentStateChange.timestamp;
+            }
+
+        }
+
+        this.publishStateChange();
+        this.stateChanges = [];
+        return q();
     };
 
     DataLogger.prototype.initHistoricState = function (timestamp) {

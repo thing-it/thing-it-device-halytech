@@ -57,7 +57,7 @@ function Channel() {
             temperature: 0,
         };
 
-        this.lastPublishedReading = new Date();
+        this.lastPublished = new Date();
         this.lastPublishedCumulatedReading = new Date();
 
         if (this.isSimulated()) {
@@ -92,7 +92,7 @@ function Channel() {
 
 
             this.simulationIntervals.push(setInterval(function () {
-                this.publishReadings();
+                this.publishHistoricData();
             }.bind(this), 9000));
         }
 
@@ -163,14 +163,12 @@ function Channel() {
     /**
      *
      */
-    Channel.prototype.publishReadings = function () {
+    Channel.prototype.publishHistoricData = function () {
         var currentStateChange;
-        var comparisonTimeReading = this.lastPublishedReading;
+        var comparisonTimeReading = this.lastPublished;
         var comparisonTimeCumulatedReading = this.lastPublishedCumulatedReading;
 
-        this.logInfo("Publishing stateChanges for channel" + this.configuration.name + " of device "
-            + this.device.configuration.name + ".");
-
+        this.logInfo("Publishing " + this.stateChanges.length + " channel state changes.");
         this.publishStateChangeHistory(this.stateChanges);
 
         for (var n in this.stateChanges) {
@@ -179,7 +177,7 @@ function Channel() {
             if (currentStateChange.state.reading) {
                 if (currentStateChange.timestamp > comparisonTimeReading) {
                     this.state.reading = currentStateChange.state.reading;
-                    this.lastPublishedReading = currentStateChange.timestamp;
+                    this.lastPublished = currentStateChange.timestamp;
                 }
             } else if (currentStateChange.state.cumulatedReading) {
                 if (currentStateChange.timestamp > comparisonTimeCumulatedReading) {
