@@ -347,7 +347,7 @@ function DataLogger() {
 
         this.publishStateChange();
         this.stateChanges = [];
-        this.logDebug('Finished publishing historic channel state changes.');
+        this.logDebug('Finished publishing historic device state changes.');
         return q();
     };
 
