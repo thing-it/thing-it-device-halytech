@@ -295,7 +295,8 @@ function DataLogger() {
                     return q();
                 }.bind(this))
                 .catch(function (err) {
-                    this.logError(err);
+                    this.logError(err.message);
+                    this.logDebug(err);
                 }.bind(this));
         } catch (e) {
             this.logError(e.message);
