@@ -83,6 +83,7 @@ module.exports = {
 var q = require('q');
 var MailParser;
 var csv;
+var moment;
 
 function DataLoggerDiscovery() {
 
@@ -164,6 +165,13 @@ function DataLogger() {
                     var lastOwnStateChange = null;
                     var currentTimestamp;
                     var currentReading;
+                    var dateFromFile;
+                    var dateString;
+                    var anotherDate;
+
+                    if (!moment) {
+                        moment = require('moment-timezone');
+                    }
 
                     for (var n in this.actors) {
                         actors[this.actors[n].configuration.channel] = this.actors[n];
@@ -171,7 +179,13 @@ function DataLogger() {
 
                     for (var n in data) {
                         line = data[n];
-                        currentTimestamp = new Date(line[1]);
+
+                        dateFromFile = new Date(line[1] + 'Z'); // read with local time zone using Date parsing
+                        dateString = dateFromFile.toISOString();
+                        dateString = dateString.substr(0, dateString.length-1); // strip time zone info
+                        anotherDate = moment.tz(dateString, this.configuration.timeZone); // add configured timeZone
+                        currentTimestamp = new Date(anotherDate.format()); // convert back to date
+
                         currentReading = parseFloat(line[2]);
 
                         try {
@@ -270,7 +284,7 @@ function DataLogger() {
                                             });
                                         }
                                     } else {
-                                        this.logError("Channel " + channelId + " not configured, ignoring data.");
+                                        this.logDebug("Channel " + channelId + " not configured, ignoring data.");
                                     }
 
                                     break;
@@ -295,7 +309,7 @@ function DataLogger() {
                     return q();
                 }.bind(this))
                 .catch(function (err) {
-                    this.logError(err.message);
+                    this.logInfo(err.message);
                     this.logDebug(err);
                 }.bind(this));
         } catch (e) {
