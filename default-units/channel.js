@@ -106,8 +106,7 @@ function Channel() {
         this.started = false;
 
         try {
-            this.logInfo("Stopping channel " + this.configuration.name + " of device "
-                + this.device.configuration.name + ".");
+            this.logInfo('Stopping channel ' + this.configuration.name + '".');
         } catch (e) {
         }
 

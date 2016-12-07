@@ -1,16 +1,20 @@
 <div style="display: table-row; vertical-align: middle;">
     <table style="display: inline-block;">
         <tr>
-            <td style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 4em;">External Power: {{component._state.externalPowerVoltage | number:3}} V</span></td>
+            <td style="text-align: center;"><span class="smallFont lightPrimaryColor" style="font-size: 4em;">External Power (V):</span></td>
+            <td style="text-align: center;"><span class="smallFont lightPrimaryColor" style="font-size: 4em;">{{component._state.externalPowerVoltage}}</span></td>
         </tr>
         <tr>
-            <td style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 4em;">Battery 1: {{component._state.batteryOneVoltage | number:3}} V</span></td>
+            <td style="text-align: center;"><span class="smallFont lightPrimaryColor" style="font-size: 4em;">Battery 1 (V):</span></td>
+            <td style="text-align: center;"><span class="smallFont lightPrimaryColor" style="font-size: 4em;">{{component._state.batteryOneVoltage}}</span></td>
         </tr>
         <tr>
-            <td style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 4em;">Battery 2: {{component._state.batteryTwoVoltage | number:3}} V</span></td>
+            <td style="text-align: center;"><span class="smallFont lightPrimaryColor" style="font-size: 4em;">Battery 2 (V):</span></td>
+            <td style="text-align: center;"><span class="smallFont lightPrimaryColor" style="font-size: 4em;">{{component._state.batteryTwoVoltage}}</span></td>
         </tr>
         <tr>
-            <td style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 4em;">Temperature: {{component._state.temperature | number:1}} C</span></td>
+            <td style="text-align: center;"><span class="smallFont lightPrimaryColor" style="font-size: 4em;">Temperature (C):</span></td>
+            <td style="text-align: center;"><span class="smallFont lightPrimaryColor" style="font-size: 4em;">{{component._state.temperature}}</span></td>
         </tr>
     </table>
 </div>

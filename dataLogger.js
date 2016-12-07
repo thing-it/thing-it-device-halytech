@@ -294,7 +294,8 @@ function DataLogger() {
                     this.logError(err);
                 }.bind(this));
         } catch (e) {
-            this.logError(e);
+            this.logError(e.message);
+            this.logDebug(e);
             promise = q();
         }
 
@@ -466,7 +467,6 @@ function DataLogger() {
         }.bind(this));
 
         imap.once('error', function (err) {
-            this.logError(err);
             deferred.reject(err);
         }.bind(this));
 
