@@ -190,6 +190,7 @@ function Channel() {
 
         this.publishStateChange();
         this.stateChanges = [];
+        this.logDebug('Finished publishing historic channel state changes.');
         return q();
     };
 }

@@ -309,11 +309,9 @@ function DataLogger() {
                     return q();
                 }.bind(this))
                 .catch(function (err) {
-                    this.logInfo(err.message);
                     this.logDebug(err);
                 }.bind(this));
         } catch (e) {
-            this.logError(e.message);
             this.logDebug(e);
             promise = q();
         }
@@ -336,10 +334,10 @@ function DataLogger() {
 
             if (currentStateChange.timestamp > comparisonTime) {
                 this.state = {
-                    externalPowerVoltage: currentStateChange.externalPowerVoltage,
-                    batteryOneVoltage: currentStateChange.batteryOneVoltage,
-                    batteryTwoVoltage: currentStateChange.batteryTwoVoltage,
-                    temperature: currentStateChange.temperature
+                    externalPowerVoltage: currentStateChange.state.externalPowerVoltage,
+                    batteryOneVoltage: currentStateChange.state.batteryOneVoltage,
+                    batteryTwoVoltage: currentStateChange.state.batteryTwoVoltage,
+                    temperature: currentStateChange.state.temperature
                 };
 
                 this.lastPublished = currentStateChange.timestamp;
@@ -349,6 +347,7 @@ function DataLogger() {
 
         this.publishStateChange();
         this.stateChanges = [];
+        this.logDebug('Finished publishing historic channel state changes.');
         return q();
     };
 
