@@ -57,8 +57,8 @@ function Channel() {
             temperature: 0,
         };
 
-        this.lastPublished = new Date();
-        this.lastPublishedCumulatedReading = new Date();
+        this.lastPublished = new Date(1);
+        this.lastPublishedCumulatedReading = new Date(1);
 
         if (this.isSimulated()) {
             this.state.reading = 0;

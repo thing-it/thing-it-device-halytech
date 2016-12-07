@@ -115,7 +115,7 @@ function DataLogger() {
         this.simulationIntervals = [];
         this.state = {};
         this.stateChanges = [];
-        this.lastPublished = new Date();
+        this.lastPublished = new Date(1);
 
         if (this.isSimulated()) {
             this.simulationIntervals.push(setInterval(function () {
