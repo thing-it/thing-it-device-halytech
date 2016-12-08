@@ -169,6 +169,7 @@ function Channel() {
         var comparisonTimeCumulatedReading = this.lastPublishedCumulatedReading;
 
         this.logInfo("Publishing " + this.stateChanges.length + " channel state changes.");
+
         this.publishStateChangeHistory(this.stateChanges);
 
         for (var n in this.stateChanges) {

@@ -425,8 +425,6 @@ function DataLogger() {
             host: this.configuration.server,
             port: 993,
             tls: true,
-            markRead: true,
-            markSeen: true
         });
 
         imap.once('ready', function () {
@@ -444,7 +442,9 @@ function DataLogger() {
 
                         var f = imap.fetch(results, {
                             bodies: '',
-                            struct: true
+                            struct: true,
+                            markRead: true,
+                            markSeen: true
                         });
 
                         f.on('message', function (msg, seqno) {
