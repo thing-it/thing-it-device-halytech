@@ -1,0 +1,24 @@
+<!doctype html>
+<html ng-app="testApp">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.min.js"></script>
+    <script src="./uiTest.js"></script>
+    <style>
+        .smallFont {
+            font-size: 0.7em;
+        }
+
+        .lightPrimaryColor {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+<div ng-controller="TestController as test">
+    <h1>Data Logger</h1>
+    <div ng-repeat="component in [test.dataLogger]" ng-include="'../web/dataLogger.html'"></div>
+    <h1>Channel</h1>
+    <div ng-repeat="component in [test.channel]" ng-include="'../web/channel.html'"></div>
+</div>
+</body>
+</html>
