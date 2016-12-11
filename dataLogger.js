@@ -355,7 +355,9 @@ function DataLogger() {
                 this.state = {
                     externalPowerVoltage: currentStateChange.state.externalPowerVoltage,
                     batteryOneVoltage: currentStateChange.state.batteryOneVoltage,
+                    batteryOneLevel: currentStateChange.state.batteryOneLevel,
                     batteryTwoVoltage: currentStateChange.state.batteryTwoVoltage,
+                    batteryTwoLevel: currentStateChange.state.batteryTwoLevel,
                     temperature: currentStateChange.state.temperature
                 };
 
