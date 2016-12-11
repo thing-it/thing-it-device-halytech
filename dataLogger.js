@@ -132,7 +132,7 @@ function DataLogger() {
         } else {
             this.logDebug("Max configured battery voltage of " + this.configuration.maxBatteryVoltage
                 + " is out of range; changing to 12 volt.");
-            this.configuration.interval = 12;
+            this.configuration.maxBatteryVoltage = 12;
         }
 
         this.intervals = [];

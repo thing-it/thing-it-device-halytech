@@ -1,40 +1,46 @@
-<div style="display: table-row; vertical-align: middle;">
-    <table style="display: inline-block;">
-        <tr>
-            <td colspan="3" style="text-align: center;">
-                <ti-battery ti-model="component._state.batteryOneLevel"></ti-battery>
-            </td>
-        </tr>
-    </table>
-    <table style="display: inline-block;">
-        <tr>
-            <td colspan="3" style="text-align: center;">
-                <ti-battery ti-model="component._state.batteryTwoLevel"></ti-battery>
-            </td>
-        </tr>
-    </table>
-</div>
-<div style="display: table-row; vertical-align: middle;">
-    <table style="display: inline-block;">
-        <tr>
-            <td colspan="3" style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 2em;">{{component._state.temperature | number:1}}</span><span
-                    class="smallFont lightPrimaryColor">&nbsp;&deg;C</span></td>
-        </tr>
-        <tr>
-            <td colspan="3" style="text-align: center;"><span class="smallFont lightPrimaryColor">Temperature</span>
-            </td>
-        </tr>
-    </table>
-</div>
-<div style="display: table-row; vertical-align: middle;">
-    <table style="display: inline-block;">
-        <tr>
-            <td colspan="3" style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 2em;">{{component._state.externalPowerVoltage | number:3}}</span><span
-                    class="smallFont lightPrimaryColor">&nbsp;V</span></td>
-        </tr>
-        <tr>
-            <td colspan="3" style="text-align: center;"><span class="smallFont lightPrimaryColor">External Power</span>
-            </td>
-        </tr>
-    </table>
+<div class="flexLayout flexJustifyEnd" style="width: 100%;">
+    <div class="flexGrow1">
+        <div style="display: table-row; vertical-align: middle;">
+            <table style="display: inline-block;">
+                <tr>
+                    <td colspan="3" style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 2em;">{{component._state.temperature | number:1}}</span><span
+                            class="smallFont lightPrimaryColor">&nbsp;&deg;C</span></td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align: center;"><span
+                            class="smallFont lightPrimaryColor">Temperature</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="display: table-row; vertical-align: middle;">
+            <table style="display: inline-block;">
+                <tr>
+                    <td colspan="3" style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 2em;">{{component._state.externalPowerVoltage | number:1}}</span><span
+                            class="smallFont lightPrimaryColor">&nbsp;V</span></td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align: center;"><span
+                            class="smallFont lightPrimaryColor">External Power</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="flexLayout flexAlignEnd marginLeft1">
+        <table style="display: inline-block;">
+            <tr>
+                <td colspan="3" style="text-align: center;">
+                    <ti-battery ti-model="component._state.batteryOneLevel"></ti-battery>
+                </td>
+            </tr>
+        </table>
+        <table style="display: inline-block;">
+            <tr>
+                <td colspan="3" style="text-align: center;">
+                    <ti-battery ti-model="component._state.batteryTwoLevel"></ti-battery>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
