@@ -15,9 +15,17 @@ module.exports = {
             label: "Battery 1 Voltage",
             type: {id: "decimal"}
         }, {
+            id: "batteryOneLevel",
+            label: "Battery 1 Level",
+            type: {id: "integer"}
+        }, {
             id: "batteryTwoVoltage",
             label: "Battery 2 Voltage",
             type: {id: "decimal"}
+        }, {
+            id: "batteryTwoLevel",
+            label: "Battery 2 Level",
+            type: {id: "integer"}
         }, {
             id: "temperature",
             label: "Temperature",
@@ -59,7 +67,14 @@ module.exports = {
             id: "timeZone",
             label: "Time Zone",
             type: {id: "string"}
-        }, {}, {
+        }, {
+            id: "maxBatteryVoltage",
+            label: "Maximum Battery Voltage",
+            type: {
+                id: "integer"
+            },
+            defaultValue: 12
+        }, {
             id: "interval",
             label: "Interval",
             type: {id: "integer"}
@@ -104,12 +119,20 @@ function DataLogger() {
 
         this.logDebug("Starting halytech data logger.");
 
-        if ((this.configuration.interval > 1) && (this.configuration.interval < 360)) {
+        if ((this.configuration.interval > 0) && (this.configuration.interval < 360)) {
             this.logDebug("Applying interval of " + this.configuration.interval + " minutes as configured.");
         } else {
             this.logDebug("Configured interval of " + this.configuration.interval + " minutes is out of range; changing " +
                 "to 15 minutes.");
             this.configuration.interval = 15;
+        }
+
+        if ((this.configuration.maxBatteryVoltage > 0) && (this.configuration.maxBatteryVoltage < 36)) {
+            this.logDebug("Applying max battery level of " + this.configuration.maxBatteryVoltage + " volt as configured.");
+        } else {
+            this.logDebug("Max configured battery voltage of " + this.configuration.maxBatteryVoltage
+                + " is out of range; changing to 12 volt.");
+            this.configuration.interval = 12;
         }
 
         this.intervals = [];
@@ -130,11 +153,16 @@ function DataLogger() {
                     }
                 };
 
+                simulatedState.state.batteryOneLevel = this.calculateBatteryLevel(simulatedState.state.batteryOneVoltage);
+                simulatedState.state.batteryTwoLevel = this.calculateBatteryLevel(simulatedState.state.batteryTwoVoltage);
+
                 this.stateChanges.push(simulatedState);
                 this.logDebug('Simulated device status change ('
                     + simulatedState.state.externalPowerVoltage + ','
                     + simulatedState.state.batteryOneVoltage + ','
+                    + simulatedState.state.batteryOneLevel + ','
                     + simulatedState.state.batteryTwoVoltage + ','
+                    + simulatedState.state.batteryTwoLevel + ','
                     + simulatedState.state.temperature + ').');
             }.bind(this), 10000));
 
@@ -152,6 +180,17 @@ function DataLogger() {
         return q();
     };
 
+    DataLogger.prototype.calculateBatteryLevel = function (voltage) {
+        var batteryLevel = 0;
+
+        try {
+            batteryLevel = Math.round((voltage / this.configuration.maxBatteryVoltage * 100));
+        } catch (e) {
+            this.logDebug(e);
+        }
+
+        return batteryLevel;
+    }
 
     DataLogger.prototype.pollData = function () {
         try {
@@ -182,7 +221,7 @@ function DataLogger() {
 
                         dateFromFile = new Date(line[1] + 'Z'); // read with local time zone using Date parsing
                         dateString = dateFromFile.toISOString();
-                        dateString = dateString.substr(0, dateString.length-1); // strip time zone info
+                        dateString = dateString.substr(0, dateString.length - 1); // strip time zone info
                         anotherDate = moment.tz(dateString, this.configuration.timeZone); // add configured timeZone
                         currentTimestamp = new Date(anotherDate.format()); // convert back to date
 
@@ -194,67 +233,47 @@ function DataLogger() {
                                 case "External Power Vol_reading":
                                     if (!lastOwnStateChange) {
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
-                                    }
-
-                                    if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
-                                        lastOwnStateChange.state.externalPowerVoltage = currentReading;
-                                    } else {
+                                    } else if (currentTimestamp.getTime() != lastOwnStateChange.timestamp.getTime()) {
                                         this.stateChanges.push(lastOwnStateChange);
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
-                                        lastOwnStateChange.externalPowerVoltage = currentReading;
                                     }
 
+                                    lastOwnStateChange.state.externalPowerVoltage = currentReading;
                                     break;
 
                                 case "Battery 1 Voltage_reading":
                                     if (!lastOwnStateChange) {
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
-                                    }
-
-                                    if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
-                                        lastOwnStateChange.state.batteryOneVoltage = currentReading;
-                                    } else {
-                                        if (lastOwnStateChange) {
-                                            this.stateChanges.push(lastOwnStateChange);
-                                        }
-
+                                    } else if (currentTimestamp.getTime() != lastOwnStateChange.timestamp.getTime()) {
+                                        this.stateChanges.push(lastOwnStateChange);
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
-                                        lastOwnStateChange.batteryOneVoltage = currentReading;
                                     }
+
+                                    lastOwnStateChange.state.batteryOneVoltage = currentReading;
+                                    lastOwnStateChange.state.batteryOneLevel = this.calculateBatteryLevel(currentReading);
                                     break;
 
                                 case "Battery 2 Voltage_reading":
                                     if (!lastOwnStateChange) {
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
-                                    }
-
-                                    if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
-                                        lastOwnStateChange.state.batteryTwoVoltage = currentReading;
-                                    } else {
-                                        if (lastOwnStateChange) {
-                                            this.stateChanges.push(lastOwnStateChange);
-                                        }
-
+                                    } else if (currentTimestamp.getTime() != lastOwnStateChange.timestamp.getTime()) {
+                                        this.stateChanges.push(lastOwnStateChange);
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
-                                        lastOwnStateChange.batteryTwoVoltage = currentReading;
                                     }
+
+                                    lastOwnStateChange.state.batteryTwoVoltage = currentReading;
+                                    lastOwnStateChange.state.batteryTwoLevel = this.calculateBatteryLevel(currentReading);
                                     break;
 
                                 case "System Temp_reading":
                                     if (!lastOwnStateChange) {
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
-                                    }
-
-                                    if (currentTimestamp.getTime() == lastOwnStateChange.timestamp.getTime()) {
-                                        lastOwnStateChange.state.temperature = currentReading;
-                                    } else {
-                                        if (lastOwnStateChange) {
-                                            this.stateChanges.push(lastOwnStateChange);
-                                        }
-
+                                    } else if (currentTimestamp.getTime() != lastOwnStateChange.timestamp.getTime()) {
+                                        this.stateChanges.push(lastOwnStateChange);
                                         lastOwnStateChange = this.initHistoricState(currentTimestamp);
-                                        lastOwnStateChange.temperature = currentReading;
                                     }
+
+                                    lastOwnStateChange.temperature = currentReading;
                                     break;
 
                                 default:
@@ -357,7 +376,9 @@ function DataLogger() {
             state: {
                 externalPowerVoltage: 0,
                 batteryOneVoltage: 0,
+                batteryOneLevel: 0,
                 batteryTwoVoltage: 0,
+                batteryTwoLevel: 0,
                 temperature: 0
             }
         };

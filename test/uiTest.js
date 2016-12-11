@@ -3,7 +3,11 @@ angular.module('testApp', [])
         this.dataLogger = {
             _state: {
                 externalPowerVoltage: 0.123,
-                batteryOneVoltage: 7.432, batteryTwoVoltage: 6.543, temperature: 21.9
+                batteryOneVoltage: 7.444,
+                batteryOneLevel: 70,
+                batteryTwoVoltage: 6.545,
+                batteryTwoLevel: 50,
+                temperature: 21.9
             }
         };
         this.channel = {_state: {cumulatedReading: 27}};

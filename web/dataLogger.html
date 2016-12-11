@@ -1,20 +1,40 @@
 <div style="display: table-row; vertical-align: middle;">
     <table style="display: inline-block;">
         <tr>
-            <td><span class="smallFont lightPrimaryColor">External Power:</span></td>
-            <td><span class="smallFont lightPrimaryColor">{{component._state.externalPowerVoltage}} V</span></td>
+            <td colspan="3" style="text-align: center;">
+                <ti-battery ti-model="component._state.batteryOneLevel"></ti-battery>
+            </td>
+        </tr>
+    </table>
+    <table style="display: inline-block;">
+        <tr>
+            <td colspan="3" style="text-align: center;">
+                <ti-battery ti-model="component._state.batteryTwoLevel"></ti-battery>
+            </td>
+        </tr>
+    </table>
+</div>
+<div style="display: table-row; vertical-align: middle;">
+    <table style="display: inline-block;">
+        <tr>
+            <td colspan="3" style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 2em;">{{component._state.temperature | number:1}}</span><span
+                    class="smallFont lightPrimaryColor">&nbsp;&deg;C</span></td>
         </tr>
         <tr>
-            <td><span class="smallFont lightPrimaryColor">Battery 1:</span></td>
-            <td><span class="smallFont lightPrimaryColor">{{component._state.batteryOneVoltage}} V</span></td>
+            <td colspan="3" style="text-align: center;"><span class="smallFont lightPrimaryColor">Temperature</span>
+            </td>
+        </tr>
+    </table>
+</div>
+<div style="display: table-row; vertical-align: middle;">
+    <table style="display: inline-block;">
+        <tr>
+            <td colspan="3" style="text-align: center;"><span class="lightPrimaryColor" style="font-size: 2em;">{{component._state.externalPowerVoltage | number:3}}</span><span
+                    class="smallFont lightPrimaryColor">&nbsp;V</span></td>
         </tr>
         <tr>
-            <td><span class="smallFont lightPrimaryColor">Battery 2:</span></td>
-            <td><span class="smallFont lightPrimaryColor">{{component._state.batteryTwoVoltage}} V</span></td>
-        </tr>
-        <tr>
-            <td><span class="smallFont lightPrimaryColor">Temperature:</span></td>
-            <td><span class="smallFont lightPrimaryColor">{{component._state.temperature}} &deg;C</span></td>
+            <td colspan="3" style="text-align: center;"><span class="smallFont lightPrimaryColor">External Power</span>
+            </td>
         </tr>
     </table>
 </div>
