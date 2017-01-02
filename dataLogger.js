@@ -546,7 +546,11 @@ function DataLogger() {
             this.logDebug('Connection ended');
         }.bind(this));
 
-        imap.connect();
+        try {
+            imap.connect();
+        } catch (e) {
+            deferred.reject(e);
+        }
 
         return deferred.promise;
     }

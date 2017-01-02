@@ -1,24 +1,26 @@
 <!doctype html>
 <html ng-app="testApp">
 <head>
+    <link href="https://www.thing-it.com/thing-it//css/fonts/titillium-web.css"
+          rel="stylesheet" type="text/css">
+    <link href="https://www.thing-it.com/thing-it//css/fonts/oswald.css" rel="stylesheet" type="text/css">
+    <link href="https://www.thing-it.com/thing-it//css/fonts/streamline.css" rel="stylesheet" type="text/css">
+    <link href="https://www.thing-it.com/thing-it//css/bpmn/bpmn.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet"
+          href="https://www.thing-it.com/thing-it//css/thirdparty/font-awesome/css/font-awesome.min.css">
+    <link href="https://www.thing-it.com/thing-it//css/thing-it-portal.css" rel="stylesheet" type="text/css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.min.js"></script>
     <script src="./uiTest.js"></script>
-    <style>
-        .smallFont {
-            font-size: 0.7em;
-        }
-
-        .lightPrimaryColor {
-            color: blue;
-        }
-    </style>
 </head>
+
 <body>
-<div ng-controller="TestController as test">
+<div class="padding1" ng-controller="TestController as test">
     <h1>Data Logger</h1>
-    <div ng-repeat="component in [test.dataLogger]" ng-include="'../web/dataLogger.html'"></div>
+    <div class="formSection flexLayout flexJustifyCenter" style="width: 40em;"
+         ng-repeat="component in [test.dataLogger]" ng-include="'../web/dataLogger.html'"></div>
     <h1>Channel</h1>
-    <div ng-repeat="component in [test.channel]" ng-include="'../web/channel.html'"></div>
+    <div class="formSection flexLayout flexJustifyCenter" style="width: 40em;" ng-repeat="component in [test.channel]"
+         ng-include="'../web/channel.html'"></div>
 </div>
 </body>
 </html>
