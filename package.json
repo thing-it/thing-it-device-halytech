@@ -1,9 +1,12 @@
 {
-  "name": "thing-it-device-halytech",
+  "name": "@thing-it/device-halytech",
   "version": "0.0.19",
   "description": "[thing-it-node] device plugin for halytech smart monitoring systems.",
   "authors": "Klaus Berberich",
   "license": "MIT",
+  "scripts": {
+    "postversion": "git push && git push --tags && npm publish"
+  },
   "keywords": [
     "IoT",
     "IIoT",
@@ -17,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/klausberberich/thing-it-device-halytech"
+    "url": "https://github.com/thing-it/thing-it-device-halytech"
   },
   "dependencies": {
     "csv": "^1.1.0",
