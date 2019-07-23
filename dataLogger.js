@@ -117,6 +117,12 @@ function DataLogger() {
      */
     DataLogger.prototype.start = function () {
 
+        this.operationalState = {
+            status: 'PENDING',
+            message: 'Waiting for initialization...'
+        };
+        this.publishOperationalStateChange();
+
         this.logDebug("Starting halytech data logger.");
 
         if ((this.configuration.interval > 0) && (this.configuration.interval < 360)) {
@@ -170,11 +176,22 @@ function DataLogger() {
                 this.publishHistoricData();
             }.bind(this), 24000));
 
+            this.operationalState = {
+                status: 'OK',
+                message: 'Halytech Data Logger successfully initialized'
+            }
+            this.publishOperationalStateChange();
         } else {
             this.pollData();
             this.intervals.push(setInterval(function () {
                 this.pollData();
             }.bind(this), this.configuration.interval * 60000))
+
+            this.operationalState = {
+                status: 'OK',
+                message: 'Halytech Data Logger successfully initialized'
+            }
+            this.publishOperationalStateChange();
         }
 
         return q();

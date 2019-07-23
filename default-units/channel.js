@@ -48,6 +48,12 @@ function Channel() {
      *
      */
     Channel.prototype.start = function () {
+        this.operationalState = {
+            status: 'PENDING',
+            message: 'Waiting for initialization...'
+        };
+        this.publishOperationalStateChange();
+
         this.started = true;
         this.intervals = [];
         this.simulationIntervals = [];
@@ -96,6 +102,12 @@ function Channel() {
             }.bind(this), 9000));
         }
 
+        this.operationalState = {
+            status: 'OK',
+            message: 'Channel successfully initialized'
+        }
+        this.publishOperationalStateChange();
+        
         return q();
     };
 
